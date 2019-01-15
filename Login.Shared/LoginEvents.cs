@@ -13,5 +13,9 @@ namespace NFive.Login.Shared
 		public const string Registered = "nfive:login:registered";
 
 		public const string LoggedIn = "nfive:login:loggedin";
+
+		public const string GetCurrentAccountsCount = "nfive:login:get:currentaccounts:count";
+
+		public const string GetCurrentAccounts = "nfive:login:get:currentaccounts";
 	}
 }

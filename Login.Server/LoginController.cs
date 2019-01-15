@@ -17,14 +17,18 @@ using NFive.Login.Server.Helpers;
 namespace NFive.Login.Server
 {
 	public class LoginController : ConfigurableController<Configuration>
-	{
-		private Dictionary<int, int> LoginAttempts { get; set; }
+	{		
 		private BCryptHelper BCryptHelper { get; set; }
 
+		private Dictionary<int, int> LoginAttempts { get; set; }
+		private List<Account> LoggedInAccounts { get; set; }
+
 		public LoginController(ILogger logger, IEventManager events, IRpcHandler rpc, IRconManager rcon, Configuration configuration) : base(logger, events, rpc, rcon, configuration)
-		{
-			this.LoginAttempts = new Dictionary<int, int>();
+		{			
 			this.BCryptHelper = new BCryptHelper(this.Configuration.GlobalSalt, this.Configuration.BCryptCost);
+
+			this.LoginAttempts = new Dictionary<int, int>();
+			this.LoggedInAccounts = new List<Account>();
 
 			// Send configuration when requested
 			this.Rpc.Event(LoginEvents.Configuration).On(e => e.Reply(new PublicConfiguration(this.Configuration)));
@@ -32,6 +36,9 @@ namespace NFive.Login.Server
 			this.Rpc.Event(LoginEvents.Register).On<string, string>(OnRegistrationRequested);
 			this.Rpc.Event(LoginEvents.Login).On<string, string>(OnLoginRequested);
 			this.Rpc.Event(LoginEvents.AuthenticationStarted).On(OnAuthenticationStarted);
+
+			this.Events.OnRequest(LoginEvents.GetCurrentAccountsCount, () => this.LoggedInAccounts.Count);
+			this.Events.OnRequest(LoginEvents.GetCurrentAccounts, () => this.LoggedInAccounts);
 
 			// Listen for NFive SessionManager plugin events
 			var sessions = new SessionManager.Server.SessionManager(this.Events, this.Rpc);
@@ -42,6 +49,8 @@ namespace NFive.Login.Server
 		{
 			if (this.LoginAttempts.ContainsKey(e.Client.Handle))
 				this.LoginAttempts.Remove(e.Client.Handle);
+
+			this.LoggedInAccounts.RemoveAll(a => a.UserId == e.Session.UserId);
 		}
 
 		private void OnAuthenticationStarted(IRpcEvent rpc)
@@ -74,6 +83,7 @@ namespace NFive.Login.Server
 						account.Password = this.BCryptHelper.UpdateHash(password, account.Password);
 						await context.SaveChangesAsync();
 						transaction.Commit();
+						this.LoggedInAccounts.Add(account);
 						this.Events.Raise(LoginEvents.LoggedIn, rpc.Client, account);
 						this.Logger.Debug($"{rpc.User.Name} has just logged in ({email})");
 						rpc.Reply(LoginResponse.Ok);

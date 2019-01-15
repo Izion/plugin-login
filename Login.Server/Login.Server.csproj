@@ -94,6 +94,7 @@
   <ItemGroup>
     <Compile Include="Events\ClientAccountEventArgs.cs" />
     <Compile Include="Helpers\BCryptHelper.cs" />
+    <Compile Include="Login.cs" />
     <Compile Include="Migrations\201901150112396_Init.cs" />
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Account.cs" />
