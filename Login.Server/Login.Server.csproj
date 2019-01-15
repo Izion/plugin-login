@@ -46,6 +46,7 @@
     <Reference Include="BCrypt.Net-Next.net, Version=3.1.2.0, Culture=neutral, PublicKeyToken=1e11be04b6288443, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\BCrypt.Net-Next.net.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="CitizenFX.Core, Version=0.0.0.0, Culture=neutral, processorArchitecture=AMD64">
       <HintPath>..\packages\CitizenFX.Server.1.0.0.910\lib\net452\CitizenFX.Core.dll</HintPath>
@@ -85,6 +86,7 @@
     </Reference>
     <Reference Include="NFive.SessionManager.Server.net">
       <HintPath>..\plugins\NFive\plugin-sessionmanager\NFive.SessionManager.Server.net.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
@@ -111,4 +113,7 @@
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="CopyLinkedContentFiles" BeforeTargets="BeforeBuild">
+    <Copy SourceFiles="..\packages\BCrypt.Net-Next.3.1.2\lib\net452\BCrypt.Net-Next.dll" DestinationFiles="..\BCrypt.Net-Next.net.dll" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" />
+  </Target>
 </Project>
