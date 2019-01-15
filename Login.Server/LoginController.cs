@@ -107,7 +107,11 @@ namespace NFive.Login.Server
 				{
 					int accounts = context.Accounts.Select(a => a.UserId == rpc.User.Id).ToList().Count;
 					if (this.Configuration.MaxAccountsPerUser != 0 && accounts >= this.Configuration.MaxAccountsPerUser)
+					{
 						rpc.Reply(RegisterResponse.AccountLimitReached);
+						return;
+					}
+						
 
 					bool exists = context.Accounts.Any(e => e.Email == email);
 					if (exists)
