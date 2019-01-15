@@ -100,14 +100,13 @@ namespace NFive.Login.Server
 
 		private async void OnRegistrationRequested(IRpcEvent rpc, string email, string password)
 		{
-			this.Logger.Debug($"Recieved register attempts: {email}:{password}");
 			using (StorageContext context = new StorageContext())
 			using (var transaction = context.Database.BeginTransaction())
 			{
 				try
 				{
 					int accounts = context.Accounts.Select(a => a.UserId == rpc.User.Id).ToList().Count;
-					if (this.Configuration.MaxAccountsPerUser != 0 && accounts > this.Configuration.MaxAccountsPerUser)
+					if (this.Configuration.MaxAccountsPerUser != 0 && accounts >= this.Configuration.MaxAccountsPerUser)
 						rpc.Reply(RegisterResponse.AccountLimitReached);
 
 					bool exists = context.Accounts.Any(e => e.Email == email);
