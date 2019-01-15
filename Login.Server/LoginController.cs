@@ -10,7 +10,7 @@ using NFive.SDK.Server.Events;
 using NFive.SDK.Server.Rcon;
 using NFive.SDK.Server.Rpc;
 using NFive.Login.Shared;
-using NFive.Login.Shared.Resonses;
+using NFive.Login.Shared.Responses;
 using NFive.SessionManager.Server.Events;
 using NFive.Login.Server.Helpers;
 
@@ -60,7 +60,7 @@ namespace NFive.Login.Server
 					var account = context.Accounts.FirstOrDefault(a => a.Email == email);
 					if (account == null || !this.BCryptHelper.ValidatePassword(password, account.Password))
 					{
-						rpc.Reply(LoginResponse.Wrong_Combination);
+						rpc.Reply(LoginResponse.WrongCombination);
 						this.LoginAttempts[rpc.Client.Handle]++;
 						if (this.Configuration.LoginAttempts <= 0 ||
 							this.LoginAttempts[rpc.Client.Handle] < this.Configuration.LoginAttempts) return;
@@ -83,7 +83,7 @@ namespace NFive.Login.Server
 				{
 					this.Logger.Error(e);
 					transaction.Rollback();
-					rpc.Reply(LoginResponse.Unexpected_Error);
+					rpc.Reply(LoginResponse.UnexpectedError);
 				}
 			}
 		}
@@ -98,11 +98,11 @@ namespace NFive.Login.Server
 				{
 					int accounts = context.Accounts.Select(a => a.UserId == rpc.User.Id).ToList().Count;
 					if (this.Configuration.MaxAccountsPerUser != 0 && accounts > this.Configuration.MaxAccountsPerUser)
-						rpc.Reply(RegisterResponse.Account_Limit_Reached);
+						rpc.Reply(RegisterResponse.AccountLimitReached);
 
 					bool exists = context.Accounts.Any(e => e.Email == email);
 					if (exists)
-						rpc.Reply(RegisterResponse.Email_Exists);
+						rpc.Reply(RegisterResponse.EmailExists);
 					else
 					{
 						Account account = new Account
@@ -126,7 +126,7 @@ namespace NFive.Login.Server
 				{
 					this.Logger.Error(e);
 					transaction.Rollback();
-					rpc.Reply(RegisterResponse.Unexpected_Error);
+					rpc.Reply(RegisterResponse.UnexpectedError);
 				}
 			}
 		}

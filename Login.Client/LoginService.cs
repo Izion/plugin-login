@@ -12,7 +12,7 @@ using NFive.Login.Shared;
 using CitizenFX.Core;
 using CitizenFX.Core.Native;
 using CitizenFX.Core.UI;
-using NFive.Login.Shared.Resonses;
+using NFive.Login.Shared.Responses;
 using NFive.SDK.Client.Extensions;
 
 namespace NFive.Login.Client
@@ -93,13 +93,13 @@ namespace NFive.Login.Client
 
 			switch (response)
 			{
-				case RegisterResponse.Account_Limit_Reached:
+				case RegisterResponse.AccountLimitReached:
 					this.overlay.ShowError("You have reached the maximum number of accounts per license!");
 					break;
-				case RegisterResponse.Email_Exists:
+				case RegisterResponse.EmailExists:
 					this.overlay.ShowError("The email you entered already exists!");
 					break;
-				case RegisterResponse.Unexpected_Error:
+				case RegisterResponse.UnexpectedError:
 					this.overlay.ShowError("An unexpected error has occured. Please notify an admin.");
 					break;
 				case RegisterResponse.Ok:
@@ -116,10 +116,10 @@ namespace NFive.Login.Client
 
 			switch (response)
 			{
-				case LoginResponse.Wrong_Combination:
+				case LoginResponse.WrongCombination:
 					this.overlay.ShowError("You have entered the wrong email/password combination!");
 					break;
-				case LoginResponse.Unexpected_Error:
+				case LoginResponse.UnexpectedError:
 					this.overlay.ShowError("An unexpected error has occured. Please notify an admin.");
 					break;
 				case LoginResponse.Ok:
