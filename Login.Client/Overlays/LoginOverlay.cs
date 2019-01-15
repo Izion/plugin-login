@@ -9,7 +9,7 @@ namespace NFive.Login.Client.Overlays
 		public event EventHandler<CredentialsOverlayEventArgs> Login;
 		public event EventHandler<CredentialsOverlayEventArgs> Register;
 
-		public LoginOverlay(OverlayManager manager) : base("PluginLoginOverlay.html", manager)
+		public LoginOverlay(OverlayManager manager) : base("LoginOverlay.html", manager)
 		{
 			Attach<Credentials>("login", (credentials, callback) => this.Login?.Invoke(this, new CredentialsOverlayEventArgs(this, credentials)));
 			Attach<Credentials>("register", (credentials, callback) => this.Register?.Invoke(this, new CredentialsOverlayEventArgs(this, credentials)));
