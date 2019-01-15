@@ -1,0 +1,22 @@
+name: NFive/plugin-login
+version: 1.0.0
+description: Adds the ability to create accounts (email:password) to allow computer sharing
+author: TheFuseGamer
+license: LGPL
+server:
+  main:
+  - NFive.Login.Server
+  include:
+  - NFive.Login.Shared
+  - BCrypt.Net-Next
+client:
+  main:
+  - NFive.Login.Client
+  include:
+  - NFive.Login.Shared
+  files:
+  - Overlays/LoginOverlay.html
+  - Overlays/script.js
+  - Overlays/style.css
+dependencies:
+  NFive/plugin-sessionmanager: '*'

@@ -1,0 +1,100 @@
+
+
+.LoginScreen {
+	position: absolute;
+	display: block;
+	width: 30vw;
+	overflow: auto;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	background-color: rgba(0, 0, 0, 0.8);	
+}
+
+.ServerName {
+	position: relative;
+	text-align: center;
+	margin-top: 10%;
+	margin-bottom: 3%;
+	font-family: 'Montserrat', sans-serif;
+	font-size: 3vw;
+	line-height: 5vh;
+	color: rgb(255, 255, 255);
+}
+
+.ServerName span {
+	position: relative;
+	color: #B11C1C;
+}
+
+.ErrorMessage {
+	position: relative;
+	font-size: 2vh;
+	color: #ec3f41;
+	margin-top: 0;
+	margin-bottom: 5%;
+	padding-left: 5%;
+	padding-right: 5%;
+	font-family: 'Open Sans', sans-serif;
+}
+
+.InfoMessage {
+	position: relative;
+	font-size: 2vh;
+	color: #007FFF;
+	margin-top: 0;
+	margin-bottom: 5%;
+	padding-left: 5%;
+	padding-right: 5%;
+	font-family: 'Open Sans', sans-serif;
+}
+
+.Container {
+	text-align: center;
+}
+
+.LoginForm {
+	display: block;
+}
+
+.RegisterForm {
+	display: none;
+}
+
+input[type=text], input[type=password] {
+	display: inline-block;
+	box-sizing: border-box;
+	width: 80%;
+	padding: 1.4vh;
+	margin: 0 auto;
+	margin-bottom: 0.5vh;
+}
+
+button {
+	display: inline-block;
+	padding: 2vh;
+	background-color: #007FFF;
+	border: 0;
+	color: white;
+	width: 80%;
+}
+
+.ButtonContainer {	
+	margin: 0 auto;
+	margin-top: 1vh;
+	margin-bottom: 3vh;
+}
+
+.SwitchForms {
+	margin-top: 0;
+	color: #007FFF;
+	text-align: left;
+	margin-left: 10%;
+	font-size: 2vh;
+}
+
+.invalid {
+	outline: 0;
+	border-width: 0 0 3px;
+	border-color: #B11C1C;
+}
