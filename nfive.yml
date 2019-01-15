@@ -1,7 +1,7 @@
 name: NFive/plugin-login
 version: 1.0.0
 description: Adds the ability to create accounts (email:password) to allow computer sharing
-author: TheFuseGamer
+author: NFive
 license: LGPL
 server:
   main:
