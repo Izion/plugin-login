@@ -24,7 +24,7 @@ namespace NFive.Login.Server
 
 		public LoginController(ILogger logger, IEventManager events, IRpcHandler rpc, IRconManager rcon, Configuration configuration) : base(logger, events, rpc, rcon, configuration)
 		{
-			this.BCryptHelper = new BCryptHelper(this.Configuration.GlobalSalt, this.Configuration.BCryptCost);
+			this.BCryptHelper = new BCryptHelper(this.Configuration.GlobalSalt, this.Configuration.BcryptCost);
 
 			this.LoginAttempts = new Dictionary<int, int>();
 			this.LoggedInAccounts = new List<Account>();
@@ -32,8 +32,8 @@ namespace NFive.Login.Server
 			// Send configuration when requested
 			this.Rpc.Event(LoginEvents.Configuration).On(e => e.Reply(new PublicConfiguration(this.Configuration)));
 
-			this.Rpc.Event(LoginEvents.Register).On<string, string>(OnRegistrationRequested);
-			this.Rpc.Event(LoginEvents.Login).On<string, string>(OnLoginRequested);
+			this.Rpc.Event(LoginEvents.Register).On<Credentials>(OnRegistrationRequested);
+			this.Rpc.Event(LoginEvents.Login).On<Credentials>(OnLoginRequested);
 			this.Rpc.Event(LoginEvents.AuthenticationStarted).On(OnAuthenticationStarted);
 
 			this.Events.OnRequest(LoginEvents.GetCurrentAccountsCount, () => this.LoggedInAccounts.Count);
@@ -57,15 +57,15 @@ namespace NFive.Login.Server
 			this.LoginAttempts.Add(rpc.Client.Handle, 0);
 		}
 
-		private async void OnLoginRequested(IRpcEvent rpc, string email, string password)
+		private async void OnLoginRequested(IRpcEvent rpc, Credentials credentials)
 		{
 			using (var context = new StorageContext())
 			using (var transaction = context.Database.BeginTransaction())
 			{
 				try
 				{
-					var account = context.Accounts.FirstOrDefault(a => a.Email == email);
-					if (account == null || !this.BCryptHelper.ValidatePassword(password, account.Password))
+					var account = context.Accounts.FirstOrDefault(a => a.Email == credentials.Email);
+					if (account == null || !this.BCryptHelper.ValidatePassword(credentials.Password, account.Password))
 					{
 						rpc.Reply(LoginResponse.WrongCombination);
 						this.LoginAttempts[rpc.Client.Handle]++;
@@ -77,12 +77,12 @@ namespace NFive.Login.Server
 					else
 					{
 						account.LastLogin = DateTime.UtcNow;
-						account.Password = this.BCryptHelper.UpdateHash(password, account.Password);
+						account.Password = this.BCryptHelper.UpdateHash(credentials.Password, account.Password);
 						await context.SaveChangesAsync();
 						transaction.Commit();
 						this.LoggedInAccounts.Add(account);
 						this.Events.Raise(LoginEvents.LoggedIn, rpc.Client, account);
-						this.Logger.Debug($"{rpc.User.Name} has just logged in ({email})");
+						this.Logger.Debug($"{rpc.User.Name} has just logged in ({credentials.Email})");
 						rpc.Reply(LoginResponse.Ok);
 					}
 				}
@@ -95,7 +95,7 @@ namespace NFive.Login.Server
 			}
 		}
 
-		private async void OnRegistrationRequested(IRpcEvent rpc, string email, string password)
+		private async void OnRegistrationRequested(IRpcEvent rpc, Credentials credentials)
 		{
 			using (var context = new StorageContext())
 			using (var transaction = context.Database.BeginTransaction())
@@ -108,7 +108,7 @@ namespace NFive.Login.Server
 						return;
 					}
 
-					if (context.Accounts.Any(e => e.Email == email))
+					if (context.Accounts.Any(e => e.Email == credentials.Email))
 					{
 						rpc.Reply(RegisterResponse.EmailExists);
 					}
@@ -116,8 +116,8 @@ namespace NFive.Login.Server
 					{
 						var account = new Account
 						{
-							Email = email,
-							Password = this.BCryptHelper.HashPassword(password),
+							Email = credentials.Email,
+							Password = this.BCryptHelper.HashPassword(credentials.Password),
 							UserId = rpc.User.Id
 						};
 
@@ -126,7 +126,7 @@ namespace NFive.Login.Server
 						transaction.Commit();
 
 						this.Events.Raise(LoginEvents.Registered, rpc.Client, account);
-						this.Logger.Debug($"{rpc.User.Name} has registered a new account ({email})");
+						this.Logger.Debug($"{rpc.User.Name} has registered a new account ({credentials.Email})");
 						rpc.Reply(RegisterResponse.Ok);
 					}
 				}

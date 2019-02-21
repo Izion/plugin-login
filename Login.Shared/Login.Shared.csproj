@@ -52,6 +52,7 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Credentials.cs" />
     <Compile Include="LoginEvents.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="Models\IAccount.cs" />

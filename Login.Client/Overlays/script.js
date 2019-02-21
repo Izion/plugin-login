@@ -1,160 +1,126 @@
-
-var MinPasswordLength = 0;
-var ForceSymbols = false;
-var ForceDigits = false;
-var ForceMixedCase = false;
-
-function ShowError(error) {
+function ShowError(message) {
 	HideInfo();
-	$(".ErrorMessage").text("ERROR: " + error);
+	$('#error-alert').text(message).removeClass('d-none');
 }
 
 function HideError() {
-	$(".ErrorMessage").text("");
+	$('#error-alert').text('').addClass('d-none');
 }
 
-function ShowInfo(info) {
+function ShowInfo(message) {
 	HideError();
-	$(".InfoMessage").text("INFO: " + info);
+	$('#info-alert').text(message).removeClass('d-none');
 }
 
 function HideInfo() {
-	$(".InfoMessage").text("");
+	$('#info-alert').text('').addClass('d-none');
 }
 
-function IsValidPassword(pwBox) {
-	var password = pwBox.val();
-	if (password.length < MinPasswordLength) {
-		ShowError("Your password is too short!");
-		pwBox.addClass("invalid");
-		return false;
-	}
-	else if (ForceMixedCase && (!password.match(/[a-z]/) || !password.match(/[A-Z]/))) {
-		ShowError("Your password needs to have both lowercase and uppercase letters!");
-		pwBox.addClass("invalid");
-		return false;
-	}
-	else if (ForceDigits && !password.match(/\d/)) {
-		ShowError("Your password needs to have at least one digit!");
-		pwBox.addClass("invalid");
-		return false;
-	}
-	else if (ForceSymbols && !password.match(/[$-/:-?{-~!"^_`\[\]]/)) {
-		ShowError("Your password needs to have at least one symbol!");
-		pwBox.addClass("invalid");
-		return false;
-	}
-	pwBox.removeClass("invalid");
-	return true;
-}
+function SwitchForm(form) {
+	HideError();
+	HideInfo();
 
-function isValidEmailAddress(emailBox) {
-	var emailAddress = emailBox.val();
-	var pattern = /^([a-z\d!#$%&'*+\-\/=?^_`{|}~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+(\.[a-z\d!#$%&'*+\-\/=?^_`{|}~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+)*|"((([ \t]*\r\n)?[ \t]+)?([\x01-\x08\x0b\x0c\x0e-\x1f\x7f\x21\x23-\x5b\x5d-\x7e\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]|\\[\x01-\x09\x0b\x0c\x0d-\x7f\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))*(([ \t]*\r\n)?[ \t]+)?")@(([a-z\d\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]|[a-z\d\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF][a-z\d\-._~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]*[a-z\d\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])\.)+([a-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]|[a-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF][a-z\d\-._~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]*[a-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])\.?$/i;
-	if (!pattern.test(emailAddress)) {
-		ShowError("Invalid email given!");
-		emailBox.addClass("invalid");
-		return false;
-	}
-	emailBox.removeClass("invalid");
-	return true;
-}
-
-function SwitchToForm(form) {
 	switch (form) {
 		case 1:
-			$(".RegisterForm").hide();
-			$(".LoginForm").show();
-			$("#RegisterEmail").removeClass("invalid");
-			$("#RegisterEmail").val("");
-			$("#RegisterPassword").removeClass("invalid");
-			$("#RegisterPassword").val("");
-			$("#RegisterPasswordRepeat").removeClass("invalid");
-			$("#RegisterPasswordRepeat").val("");
+			$('h1').text('Login');
+			$('#register').addClass('d-none')[0].reset();
+			$('#login').removeClass('d-none')[0].reset();
 			break;
+
 		case 2:
-			$(".LoginForm").hide();
-			$(".RegisterForm").show();
-			$("#LoginEmail").removeClass("invalid");
-			$("#LoginEmail").val("");
-			$("#LoginPassword").removeClass("invalid");
-			$("#LoginPassword").val("");
+			$('h1').text('Register');
+			$('#login').addClass('d-none')[0].reset();
+			$('#register').removeClass('d-none')[0].reset();
 			break;
 	}
 }
 
+
+// const nfive = {
+// 	on: () => {},
+// 	send: (event, data) => console.log(event, data),
+// 	log: (...args) => console.log(...args)
+// };
+
+
 $(() => {
-	nfive.on("config", (config) => {
-		MinPasswordLength = config.MinPasswordLength;
-		ForceSymbols = config.ForceSymbols;
-		ForceDigits = config.ForceDigits;
-		ForceMixedCase = config.ForceMixedCase;
+
+	nfive.log('START');
+
+	nfive.on('switchForm', SwitchForm);
+	nfive.on('showError', ShowError);
+	nfive.on('hideError', HideError);
+	nfive.on('showInfo', ShowInfo);
+	nfive.on('hideInfo', HideInfo);
+
+	nfive.on('config', (config) => {
+		nfive.log('config');
+		nfive.log(config);
+
+		let pattern = '^';
+		let requirement = 'Your password must be at least ' + config.MinPasswordLength + ' characters long';
+
+		if (config.ForceMixedCase || config.ForceDigits || config.ForceSymbols) requirement += ' and contain';
+
+		if (config.ForceMixedCase) {
+			pattern += '(?=.*[a-z])(?=.*[A-Z])';
+
+			requirement += ' upper and lower case';
+
+			if (config.ForceDigits || config.ForceSymbols) requirement += ' and';
+		}
+
+		if (config.ForceDigits || config.ForceSymbols) requirement += ' at least one';
+
+		if (config.ForceDigits) {
+			pattern += '(?=.*\\d)';
+
+			requirement += ' number';
+
+			if (config.ForceSymbols) requirement += ' and';
+		}
+
+		if (config.ForceSymbols) {
+			pattern += '(?=.*([^a-zA-Z\\d\\s]))';
+
+			requirement += ' special character';
+		}
+
+		pattern += '.{' + config.MinPasswordLength + ',}$';
+		requirement += '.';
+
+		$('#register #password').attr('pattern', pattern);
+		$('#password-requirements').text(requirement);
+
+		nfive.log(pattern);
+		nfive.log(requirement);
+
+		nfive.log('config');
+
+		nfive.show();
 	});
 
-	nfive.on("switchForm", (form) => SwitchToForm(form));
+	nfive.log('END');
 
-	nfive.on("showError", (error) => ShowError(error));
+	$('#switch-login').click(() => SwitchForm(1));
+	$('#switch-register').click(() => SwitchForm(2));
 
-	nfive.on("hideError", () => HideError());
+	$('#register').on('input', function() {
+		$('#password-repeat', this)[0].setCustomValidity($('#password-repeat', this).val() != $('#password', this).val() ? 'Error' : '');
+	});
 
-	nfive.on("showInfo", (info) => ShowInfo(info));
-
-	nfive.on("hideInfo", () => HideInfo());
-
-
-	$("#LoginButton").click(function (e) {
+	$('form.needs-validation').on('submit', function(e) {
 		e.preventDefault();
-		var email = $("#LoginEmail").val();
-		var password = $("#LoginPassword").val();
-		if (email.length === 0) {
-			ShowError("You must enter a valid email!");
-			$("#LoginEmail").addClass("invalid");
+
+		if ($(this)[0].checkValidity() === true) {
+			nfive.send($(this).attr('id'), {
+				Email: $('#email', this).val(),
+				Password: $('#password', this).val()
+			});
 		}
-		else if (password.length === 0) {
-			$("#LoginEmail").removeClass("invalid");
-			ShowError("You must enter a valid password!");
-			$("#LoginPassword").addClass("invalid");
-		} else {
-			HideError();
-			$("#LoginPassword").removeClass("invalid");
-			$("#LoginEmail").removeClass("invalid");
 
-			const credentials =
-			{
-				Email: $("#LoginEmail").val(),
-				Password: $("#LoginPassword").val()
-			};
-
-			nfive.send("login", credentials);
-		}
+		$(this).addClass('was-validated');
 	});
 
-	$("#RegisterButton").click(function (e) {
-		e.preventDefault();
-		if (isValidEmailAddress($("#RegisterEmail")) && IsValidPassword($("#RegisterPassword"))) {
-			HideError();
-			if ($("#RegisterPassword").val() != $("#RegisterPasswordRepeat").val()) {
-				ShowError("The confirmation password doesn't match!");
-				$("#RegisterPasswordRepeat").addClass("invalid");
-			} else {
-				$("#RegisterPasswordRepeat").removeClass("invalid");
-
-				const credentials =
-				{
-					Email: $("#RegisterEmail").val(),
-					Password: $("#RegisterPassword").val()
-				};
-
-				nfive.send("register", credentials);
-			}
-		}
-	});
-
-	$("#SwitchToLogin").click(function (e) {
-		SwitchToForm(1);
-	});
-
-	$("#SwitchToRegister").click(function (e) {
-		SwitchToForm(2);
-	});
+	nfive.send('load');
 });

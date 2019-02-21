@@ -22,7 +22,7 @@ namespace NFive.Login.Client
 	{
 		private PublicConfiguration config;
 		private LoginOverlay overlay;
-		private bool started = false;
+		private bool loggedIn;
 
 		public LoginService(ILogger logger, ITickManager ticks, IEventManager events, IRpcHandler rpc, ICommandManager commands, OverlayManager overlay, User user) : base(logger, ticks, events, rpc, commands, overlay, user) { }
 
@@ -67,9 +67,6 @@ namespace NFive.Login.Client
 			this.overlay.Login += OnLogin;
 			this.overlay.Register += OnRegister;
 
-			// Show the overlay
-			this.overlay.Show();
-
 			// Let server know we started authentication process
 			this.Rpc.Event(LoginEvents.AuthenticationStarted).Trigger();
 
@@ -84,58 +81,53 @@ namespace NFive.Login.Client
 			while (Screen.Fading.IsFadingIn) await Delay(10);
 
 			// Wait for user before releasing focus
-			while (!this.started) await Delay(20);
+			while (!this.loggedIn) await Delay(20);
 		}
 
-		private async void OnRegister(object sender, CredentialsOverlayEventArgs credentials)
+		private async void OnRegister(object sender, CredentialsOverlayEventArgs e)
 		{
-			var response = await this.Rpc.Event(LoginEvents.Register).Request<RegisterResponse>(credentials.Email.ToLower(), credentials.Password);
-
-			switch (response)
+			switch (await this.Rpc.Event(LoginEvents.Register).Request<RegisterResponse>(e.Credentials))
 			{
 				case RegisterResponse.AccountLimitReached:
-					this.overlay.ShowError("You have reached the maximum number of accounts per license!");
+					this.overlay.ShowError("You have reached the maximum number of accounts for this GTAV license!");
 					break;
 
 				case RegisterResponse.EmailExists:
-					this.overlay.ShowError("The email you entered already exists!");
+					this.overlay.ShowError("The email address you entered already has an account registered!");
 					break;
 
 				case RegisterResponse.Ok:
 					this.overlay.HideError();
 					this.overlay.ShowInfo("Your account has been registered! Please login.");
-					this.overlay.SwitchToForm(Forms.Login);
+					this.overlay.ShowForm(Forms.Login);
 					break;
 
 				case RegisterResponse.UnexpectedError:
 				default:
-					this.overlay.ShowError("An unexpected error has occured. Please notify an admin.");
+					this.overlay.ShowError("An unexpected error has occured. Please notify a server administrator.");
 					break;
 			}
 		}
 
-		private async void OnLogin(object sender, CredentialsOverlayEventArgs credentials)
+		private async void OnLogin(object sender, CredentialsOverlayEventArgs e)
 		{
-			var response = await this.Rpc.Event(LoginEvents.Login).Request<LoginResponse>(credentials.Email.ToLower(), credentials.Password);
-
-			switch (response)
+			switch (await this.Rpc.Event(LoginEvents.Login).Request<LoginResponse>(e.Credentials))
 			{
 				case LoginResponse.WrongCombination:
-					this.overlay.ShowError("You have entered the wrong email/password combination!");
+					this.overlay.ShowError("You have entered an incorrect email/password combination!<br>Forgotten your password? Contact a server administrator.");
 					break;
 
 				case LoginResponse.Ok:
-					this.overlay.HideError();
-					this.overlay.Hide();
+					this.overlay.Dispose();
 
 					// Release focus hold
-					this.started = true;
+					this.loggedIn = true;
 
 					break;
 
 				case LoginResponse.UnexpectedError:
 				default:
-					this.overlay.ShowError("An unexpected error has occured. Please notify an admin.");
+					this.overlay.ShowError("An unexpected error has occured. Please notify a server administrator.");
 					break;
 			}
 		}
