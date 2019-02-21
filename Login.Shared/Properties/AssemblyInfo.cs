@@ -1,11 +1,11 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyTitle("NFive login")]
-[assembly: AssemblyDescription("Adds the ability to create accounts (email:password) to allow computer sharing")]
+[assembly: AssemblyTitle("NFive Login")]
+[assembly: AssemblyDescription("Adds the ability to create and login to accounts (email and password) to allow computer sharing")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("NFive")]
-[assembly: AssemblyProduct("NFive login Shared Library")]
+[assembly: AssemblyProduct("NFive Login Shared Library")]
 [assembly: AssemblyCopyright("Copyright © NFive 2019")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

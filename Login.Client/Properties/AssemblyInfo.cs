@@ -4,11 +4,11 @@ using NFive.SDK.Client;
 
 [assembly: ClientPlugin(SDK.Version)]
 
-[assembly: AssemblyTitle("NFive login")]
-[assembly: AssemblyDescription("Adds the ability to create accounts (email:password) to allow computer sharing")]
+[assembly: AssemblyTitle("NFive Login")]
+[assembly: AssemblyDescription("Adds the ability to create and login to accounts (email and password) to allow computer sharing")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("NFive")]
-[assembly: AssemblyProduct("NFive login Client Plugin")]
+[assembly: AssemblyProduct("NFive Login Client Plugin")]
 [assembly: AssemblyCopyright("Copyright © NFive 2019")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
