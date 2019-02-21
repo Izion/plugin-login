@@ -16,7 +16,6 @@ client:
   - NFive.Login.Shared
   files:
   - Overlays/LoginOverlay.html
-  - Overlays/script.js
-  - Overlays/style.css
+  - Overlays/main.js
 dependencies:
   NFive/plugin-sessionmanager: '*'
