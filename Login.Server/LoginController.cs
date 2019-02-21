@@ -118,8 +118,7 @@ namespace NFive.Login.Server
 						{
 							Email = email,
 							Password = this.BCryptHelper.HashPassword(password),
-							UserId = rpc.User.Id,
-							DateOfRegistration = DateTime.UtcNow
+							UserId = rpc.User.Id
 						};
 
 						context.Accounts.Add(account);

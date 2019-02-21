@@ -10,15 +10,12 @@ namespace NFive.Login.Server.Models
 	public class Account : IdentityModel, IAccount
 	{
 		[Required]
-		[StringLength(254, MinimumLength = 6)]
+		[StringLength(254, MinimumLength = 3)]
 		public string Email { get; set; }
 
 		[Required]
 		[StringLength(60)]
 		public string Password { get; set; }
-
-		[Required]
-		public DateTime DateOfRegistration { get; set; }
 
 		public DateTime? LastLogin { get; set; }
 

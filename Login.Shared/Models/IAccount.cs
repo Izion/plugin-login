@@ -11,8 +11,6 @@ namespace NFive.Login.Shared.Models
 
 		string Password { get; set; }
 
-		DateTime DateOfRegistration { get; set; }
-
 		DateTime? LastLogin { get; set; }
 	}
 }

@@ -26,7 +26,6 @@ namespace NFive.Login.Server.Migrations
                         Id = c.Guid(nullable: false),
                         Email = c.String(nullable: false, maxLength: 254, unicode: false),
                         Password = c.String(nullable: false, maxLength: 60, unicode: false),
-                        DateOfRegistration = c.DateTime(nullable: false, precision: 0),
                         LastLogin = c.DateTime(precision: 0),
                         UserId = c.Guid(nullable: false),
                         Created = c.DateTime(nullable: false, precision: 0),

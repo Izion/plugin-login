@@ -2,7 +2,7 @@
 var MinPasswordLength = 0;
 var ForceSymbols = false;
 var ForceDigits = false;
-var ForceMixCase = false;
+var ForceMixedCase = false;
 
 function ShowError(error) {
 	HideInfo();
@@ -29,7 +29,7 @@ function IsValidPassword(pwBox) {
 		pwBox.addClass("invalid");
 		return false;
 	}
-	else if (ForceMixCase && (!password.match(/[a-z]/) || !password.match(/[A-Z]/))) {
+	else if (ForceMixedCase && (!password.match(/[a-z]/) || !password.match(/[A-Z]/))) {
 		ShowError("Your password needs to have both lowercase and uppercase letters!");
 		pwBox.addClass("invalid");
 		return false;
@@ -88,7 +88,7 @@ $(() => {
 		MinPasswordLength = config.MinPasswordLength;
 		ForceSymbols = config.ForceSymbols;
 		ForceDigits = config.ForceDigits;
-		ForceMixCase = config.ForceMixCase;
+		ForceMixedCase = config.ForceMixedCase;
 	});
 
 	nfive.on("switchForm", (form) => SwitchToForm(form));

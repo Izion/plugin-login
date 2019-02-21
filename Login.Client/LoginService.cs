@@ -22,6 +22,7 @@ namespace NFive.Login.Client
 	{
 		private PublicConfiguration config;
 		private LoginOverlay overlay;
+		private bool started = false;
 
 		public LoginService(ILogger logger, ITickManager ticks, IEventManager events, IRpcHandler rpc, ICommandManager commands, OverlayManager overlay, User user) : base(logger, ticks, events, rpc, commands, overlay, user) { }
 
@@ -32,9 +33,6 @@ namespace NFive.Login.Client
 
 			// Update local configuration on server configuration change
 			this.Rpc.Event(LoginEvents.Configuration).On<PublicConfiguration>((e, c) => this.config = c);
-
-			// Create overlay
-			this.overlay = new LoginOverlay(this.OverlayManager);
 
 			// Hide HUD
 			Screen.Hud.IsVisible = false;
@@ -64,13 +62,12 @@ namespace NFive.Login.Client
 			Screen.Fading.FadeOut(0);
 			while (Screen.Fading.IsFadingOut) await Delay(10);
 
-			// Show the overlay
-			this.overlay.Configure(this.config);
-			this.overlay.SwitchToForm(Forms.Login);
-
+			// Create overlay
+			this.overlay = new LoginOverlay(this.OverlayManager, this.config);
 			this.overlay.Login += OnLogin;
 			this.overlay.Register += OnRegister;
 
+			// Show the overlay
 			this.overlay.Show();
 
 			// Let server know we started authentication process
@@ -85,6 +82,9 @@ namespace NFive.Login.Client
 			// Fade in
 			Screen.Fading.FadeIn(500);
 			while (Screen.Fading.IsFadingIn) await Delay(10);
+
+			// Wait for user before releasing focus
+			while (!this.started) await Delay(20);
 		}
 
 		private async void OnRegister(object sender, CredentialsOverlayEventArgs credentials)
@@ -96,16 +96,20 @@ namespace NFive.Login.Client
 				case RegisterResponse.AccountLimitReached:
 					this.overlay.ShowError("You have reached the maximum number of accounts per license!");
 					break;
+
 				case RegisterResponse.EmailExists:
 					this.overlay.ShowError("The email you entered already exists!");
 					break;
-				case RegisterResponse.UnexpectedError:
-					this.overlay.ShowError("An unexpected error has occured. Please notify an admin.");
-					break;
+
 				case RegisterResponse.Ok:
 					this.overlay.HideError();
 					this.overlay.ShowInfo("Your account has been registered! Please login.");
 					this.overlay.SwitchToForm(Forms.Login);
+					break;
+
+				case RegisterResponse.UnexpectedError:
+				default:
+					this.overlay.ShowError("An unexpected error has occured. Please notify an admin.");
 					break;
 			}
 		}
@@ -119,13 +123,19 @@ namespace NFive.Login.Client
 				case LoginResponse.WrongCombination:
 					this.overlay.ShowError("You have entered the wrong email/password combination!");
 					break;
-				case LoginResponse.UnexpectedError:
-					this.overlay.ShowError("An unexpected error has occured. Please notify an admin.");
-					break;
+
 				case LoginResponse.Ok:
 					this.overlay.HideError();
 					this.overlay.Hide();
-					this.Logger.Debug("You have been logged in!");
+
+					// Release focus hold
+					this.started = true;
+
+					break;
+
+				case LoginResponse.UnexpectedError:
+				default:
+					this.overlay.ShowError("An unexpected error has occured. Please notify an admin.");
 					break;
 			}
 		}

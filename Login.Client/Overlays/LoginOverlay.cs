@@ -9,15 +9,14 @@ namespace NFive.Login.Client.Overlays
 		public event EventHandler<CredentialsOverlayEventArgs> Login;
 		public event EventHandler<CredentialsOverlayEventArgs> Register;
 
-		public LoginOverlay(OverlayManager manager) : base("LoginOverlay.html", manager)
-		{
-			Attach<Credentials>("login", (credentials, callback) => this.Login?.Invoke(this, new CredentialsOverlayEventArgs(this, credentials)));
-			Attach<Credentials>("register", (credentials, callback) => this.Register?.Invoke(this, new CredentialsOverlayEventArgs(this, credentials)));
-		}
-
-		public void Configure(PublicConfiguration config)
+		public LoginOverlay(OverlayManager manager, PublicConfiguration config) : base("LoginOverlay.html", manager)
 		{
 			Send("config", new ConfigOverlayEventArgs(config, this));
+
+			SwitchToForm(Forms.Login);
+
+			Attach<Credentials>("login", (credentials, callback) => this.Login?.Invoke(this, new CredentialsOverlayEventArgs(this, credentials)));
+			Attach<Credentials>("register", (credentials, callback) => this.Register?.Invoke(this, new CredentialsOverlayEventArgs(this, credentials)));
 		}
 
 		public void SwitchToForm(Forms form)
@@ -70,7 +69,7 @@ namespace NFive.Login.Client.Overlays
 			this.MinPasswordLength = config.MinPasswordLength;
 			this.ForceSymbols = config.ForceSymbols;
 			this.ForceDigits = config.ForceDigits;
-			this.ForceMixCase = config.ForceMixCase;
+			this.ForceMixCase = config.ForceMixedCase;
 		}
 	}
 

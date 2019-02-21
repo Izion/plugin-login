@@ -5,7 +5,7 @@ namespace NFive.Login.Shared
 		public int MinPasswordLength { get; set; }
 		public bool ForceSymbols { get; set; }
 		public bool ForceDigits { get; set; }
-		public bool ForceMixCase { get; set; }
+		public bool ForceMixedCase { get; set; }
 
 		public PublicConfiguration() { }
 
@@ -14,7 +14,7 @@ namespace NFive.Login.Shared
 			this.MinPasswordLength = config.MinPasswordLength;
 			this.ForceSymbols = config.ForceSymbols;
 			this.ForceDigits = config.ForceDigits;
-			this.ForceMixCase = config.ForceMixCase;
+			this.ForceMixedCase = config.ForceMixedCase;
 		}
 	}
 }
