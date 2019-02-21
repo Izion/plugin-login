@@ -25,7 +25,7 @@ namespace NFive.Login.Client
 
 		public LoginService(ILogger logger, ITickManager ticks, IEventManager events, IRpcHandler rpc, ICommandManager commands, OverlayManager overlay, User user) : base(logger, ticks, events, rpc, commands, overlay, user) { }
 
-		public override async Task Started()
+		public override async Task HoldFocus()
 		{
 			// Request server configuration
 			this.config = await this.Rpc.Event(LoginEvents.Configuration).Request<PublicConfiguration>();
