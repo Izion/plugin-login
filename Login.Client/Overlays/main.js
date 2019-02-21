@@ -1,6 +1,6 @@
 function ShowError(message) {
 	HideInfo();
-	$("#error-alert").text(message).removeClass("d-none");
+	$("#error-alert").html(message).removeClass("d-none");
 }
 
 function HideError() {
@@ -9,25 +9,27 @@ function HideError() {
 
 function ShowInfo(message) {
 	HideError();
-	$("#info-alert").text(message).removeClass("d-none");
+	$("#info-alert").html(message).removeClass("d-none");
 }
 
 function HideInfo() {
 	$("#info-alert").text("").addClass("d-none");
 }
 
-function SwitchForm(form) {
+function ShowForm(form) {
 	HideError();
 	HideInfo();
 
+	$("form").removeClass("was-validated");
+
 	switch (form) {
-		case 1:
+		case 0:
 			$("h1").text("Login");
 			$("#register").addClass("d-none")[0].reset();
 			$("#login").removeClass("d-none")[0].reset();
 			break;
 
-		case 2:
+		case 1:
 			$("h1").text("Register");
 			$("#login").addClass("d-none")[0].reset();
 			$("#register").removeClass("d-none")[0].reset();
@@ -36,11 +38,9 @@ function SwitchForm(form) {
 }
 
 $(() => {
-	nfive.on("switchForm", SwitchForm);
+	nfive.on("showForm", ShowForm);
 	nfive.on("showError", ShowError);
-	nfive.on("hideError", HideError);
 	nfive.on("showInfo", ShowInfo);
-	nfive.on("hideInfo", HideInfo);
 
 	nfive.on("config", (config) => {
 		let pattern = "^";
@@ -81,8 +81,8 @@ $(() => {
 		nfive.show();
 	});
 
-	$("#switch-login").click(() => SwitchForm(1));
-	$("#switch-register").click(() => SwitchForm(2));
+	$("#switch-login").click(() => ShowForm(0));
+	$("#switch-register").click(() => ShowForm(1));
 
 	$("#register").on("input", function() {
 		$("#password-repeat", this)[0].setCustomValidity($("#password-repeat", this).val() !== $("#password", this).val() ? "Error" : "");

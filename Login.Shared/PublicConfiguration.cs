@@ -1,5 +1,8 @@
+using JetBrains.Annotations;
+
 namespace NFive.Login.Shared
 {
+	[PublicAPI]
 	public class PublicConfiguration
 	{
 		public int MinPasswordLength { get; set; }

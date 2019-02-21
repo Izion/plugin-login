@@ -96,13 +96,13 @@ namespace NFive.Login.Client
 					this.overlay.ShowError("The email address you entered already has an account registered!");
 					break;
 
-				case RegisterResponse.Ok:
-					this.overlay.HideError();
-					this.overlay.ShowInfo("Your account has been registered! Please login.");
+				case RegisterResponse.Created:
 					this.overlay.ShowForm(Forms.Login);
+					this.overlay.ShowInfo("Your account has been registered! Please login.");
 					break;
 
-				case RegisterResponse.UnexpectedError:
+				// ReSharper disable once RedundantCaseLabel
+				case RegisterResponse.Error:
 				default:
 					this.overlay.ShowError("An unexpected error has occured. Please notify a server administrator.");
 					break;
@@ -113,11 +113,11 @@ namespace NFive.Login.Client
 		{
 			switch (await this.Rpc.Event(LoginEvents.Login).Request<LoginResponse>(e.Credentials))
 			{
-				case LoginResponse.WrongCombination:
+				case LoginResponse.Invalid:
 					this.overlay.ShowError("You have entered an incorrect email/password combination!<br>Forgotten your password? Contact a server administrator.");
 					break;
 
-				case LoginResponse.Ok:
+				case LoginResponse.Valid:
 					this.overlay.Dispose();
 
 					// Release focus hold
@@ -125,7 +125,8 @@ namespace NFive.Login.Client
 
 					break;
 
-				case LoginResponse.UnexpectedError:
+				// ReSharper disable once RedundantCaseLabel
+				case LoginResponse.Error:
 				default:
 					this.overlay.ShowError("An unexpected error has occured. Please notify a server administrator.");
 					break;

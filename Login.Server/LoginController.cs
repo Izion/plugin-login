@@ -13,9 +13,11 @@ using NFive.SessionManager.Server.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 
 namespace NFive.Login.Server
 {
+	[PublicAPI]
 	public class LoginController : ConfigurableController<Configuration>
 	{
 		private BCryptHelper BCryptHelper { get; }
@@ -54,6 +56,7 @@ namespace NFive.Login.Server
 		private void OnAuthenticationStarted(IRpcEvent rpc)
 		{
 			this.Logger.Debug($"{rpc.User.Name} ({rpc.Client.Handle}) has started the authentication process!");
+
 			this.LoginAttempts.Add(rpc.Client.Handle, 0);
 		}
 
@@ -65,15 +68,18 @@ namespace NFive.Login.Server
 				try
 				{
 					var account = context.Accounts.FirstOrDefault(a => a.Email == credentials.Email);
+
 					if (account == null || !this.BCryptHelper.ValidatePassword(credentials.Password, account.Password))
 					{
-						rpc.Reply(LoginResponse.WrongCombination);
-						this.LoginAttempts[rpc.Client.Handle]++;
-						if (this.Configuration.LoginAttempts <= 0 || this.LoginAttempts[rpc.Client.Handle] < this.Configuration.LoginAttempts) return;
-						this.Logger.Debug($"Kicking {rpc.User.Name} for exceeding the maximum allowed login attempts.");
-						API.DropPlayer(rpc.Client.Handle.ToString(), "You have exceeded the maximum allowed login attempts!");
-					}
+						rpc.Reply(LoginResponse.Invalid);
 
+						this.LoginAttempts[rpc.Client.Handle]++;
+
+						if (this.Configuration.LoginAttempts <= 0 || this.LoginAttempts[rpc.Client.Handle] < this.Configuration.LoginAttempts) return;
+
+						this.Logger.Debug($"Kicking {rpc.User.Name} for exceeding the maximum allowed login attempts.");
+						API.DropPlayer(rpc.Client.Handle.ToString(), "You have exceeded the maximum allowed login attempts!"); // TODO
+					}
 					else
 					{
 						account.LastLogin = DateTime.UtcNow;
@@ -83,14 +89,16 @@ namespace NFive.Login.Server
 						this.LoggedInAccounts.Add(account);
 						this.Events.Raise(LoginEvents.LoggedIn, rpc.Client, account);
 						this.Logger.Debug($"{rpc.User.Name} has just logged in ({credentials.Email})");
-						rpc.Reply(LoginResponse.Ok);
+						rpc.Reply(LoginResponse.Valid);
 					}
 				}
-				catch (Exception e)
+				catch (Exception ex)
 				{
-					this.Logger.Error(e);
+					this.Logger.Error(ex);
+
 					transaction.Rollback();
-					rpc.Reply(LoginResponse.UnexpectedError);
+
+					rpc.Reply(LoginResponse.Error);
 				}
 			}
 		}
@@ -126,15 +134,19 @@ namespace NFive.Login.Server
 						transaction.Commit();
 
 						this.Events.Raise(LoginEvents.Registered, rpc.Client, account);
+
 						this.Logger.Debug($"{rpc.User.Name} has registered a new account ({credentials.Email})");
-						rpc.Reply(RegisterResponse.Ok);
+
+						rpc.Reply(RegisterResponse.Created);
 					}
 				}
 				catch (Exception e)
 				{
 					this.Logger.Error(e);
+
 					transaction.Rollback();
-					rpc.Reply(RegisterResponse.UnexpectedError);
+
+					rpc.Reply(RegisterResponse.Error);
 				}
 			}
 		}
