@@ -7,10 +7,7 @@ namespace NFive.Login.Shared
 		public bool ForceDigits { get; set; }
 		public bool ForceMixCase { get; set; }
 
-		public PublicConfiguration()
-		{
-
-		}
+		public PublicConfiguration() { }
 
 		public PublicConfiguration(Configuration config)
 		{

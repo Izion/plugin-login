@@ -1,30 +1,29 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using CitizenFX.Core.Native;
+using NFive.Login.Server.Helpers;
 using NFive.Login.Server.Models;
 using NFive.Login.Server.Storage;
+using NFive.Login.Shared;
+using NFive.Login.Shared.Responses;
 using NFive.SDK.Core.Diagnostics;
 using NFive.SDK.Server.Controllers;
 using NFive.SDK.Server.Events;
 using NFive.SDK.Server.Rcon;
 using NFive.SDK.Server.Rpc;
-using NFive.Login.Shared;
-using NFive.Login.Shared.Responses;
 using NFive.SessionManager.Server.Events;
-using NFive.Login.Server.Helpers;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace NFive.Login.Server
 {
 	public class LoginController : ConfigurableController<Configuration>
-	{		
-		private BCryptHelper BCryptHelper { get; set; }
-
-		private Dictionary<int, int> LoginAttempts { get; set; }
-		private List<Account> LoggedInAccounts { get; set; }
+	{
+		private BCryptHelper BCryptHelper { get; }
+		private Dictionary<int, int> LoginAttempts { get; }
+		private List<Account> LoggedInAccounts { get; }
 
 		public LoginController(ILogger logger, IEventManager events, IRpcHandler rpc, IRconManager rcon, Configuration configuration) : base(logger, events, rpc, rcon, configuration)
-		{			
+		{
 			this.BCryptHelper = new BCryptHelper(this.Configuration.GlobalSalt, this.Configuration.BCryptCost);
 
 			this.LoginAttempts = new Dictionary<int, int>();
@@ -47,8 +46,7 @@ namespace NFive.Login.Server
 
 		private void OnClientDisconnected(object sender, ClientSessionEventArgs e)
 		{
-			if (this.LoginAttempts.ContainsKey(e.Client.Handle))
-				this.LoginAttempts.Remove(e.Client.Handle);
+			if (this.LoginAttempts.ContainsKey(e.Client.Handle)) this.LoginAttempts.Remove(e.Client.Handle);
 
 			this.LoggedInAccounts.RemoveAll(a => a.UserId == e.Session.UserId);
 		}
@@ -61,7 +59,7 @@ namespace NFive.Login.Server
 
 		private async void OnLoginRequested(IRpcEvent rpc, string email, string password)
 		{
-			using (StorageContext context = new StorageContext())
+			using (var context = new StorageContext())
 			using (var transaction = context.Database.BeginTransaction())
 			{
 				try
@@ -71,8 +69,7 @@ namespace NFive.Login.Server
 					{
 						rpc.Reply(LoginResponse.WrongCombination);
 						this.LoginAttempts[rpc.Client.Handle]++;
-						if (this.Configuration.LoginAttempts <= 0 ||
-							this.LoginAttempts[rpc.Client.Handle] < this.Configuration.LoginAttempts) return;
+						if (this.Configuration.LoginAttempts <= 0 || this.LoginAttempts[rpc.Client.Handle] < this.Configuration.LoginAttempts) return;
 						this.Logger.Debug($"Kicking {rpc.User.Name} for exceeding the maximum allowed login attempts.");
 						API.DropPlayer(rpc.Client.Handle.ToString(), "You have exceeded the maximum allowed login attempts!");
 					}
@@ -100,25 +97,24 @@ namespace NFive.Login.Server
 
 		private async void OnRegistrationRequested(IRpcEvent rpc, string email, string password)
 		{
-			using (StorageContext context = new StorageContext())
+			using (var context = new StorageContext())
 			using (var transaction = context.Database.BeginTransaction())
 			{
 				try
 				{
-					int accounts = context.Accounts.Select(a => a.UserId == rpc.User.Id).ToList().Count;
-					if (this.Configuration.MaxAccountsPerUser != 0 && accounts >= this.Configuration.MaxAccountsPerUser)
+					if (this.Configuration.MaxAccountsPerUser != 0 && context.Accounts.Select(a => a.UserId == rpc.User.Id).ToList().Count >= this.Configuration.MaxAccountsPerUser)
 					{
 						rpc.Reply(RegisterResponse.AccountLimitReached);
 						return;
 					}
-						
 
-					bool exists = context.Accounts.Any(e => e.Email == email);
-					if (exists)
+					if (context.Accounts.Any(e => e.Email == email))
+					{
 						rpc.Reply(RegisterResponse.EmailExists);
+					}
 					else
 					{
-						Account account = new Account
+						var account = new Account
 						{
 							Email = email,
 							Password = this.BCryptHelper.HashPassword(password),

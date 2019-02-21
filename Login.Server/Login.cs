@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using NFive.Login.Server.Events;
 using NFive.Login.Server.Models;
 using NFive.Login.Shared;
@@ -8,13 +5,15 @@ using NFive.SDK.Core.Models.Player;
 using NFive.SDK.Core.Plugins;
 using NFive.SDK.Server.Events;
 using NFive.SDK.Server.Rpc;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace NFive.Login.Server
 {
 	/// <summary>
 	/// Wrapper library for accessing events from external plugins.
 	/// </summary>
-
 	public class Login
 	{
 		/// <summary>

@@ -1,6 +1,6 @@
-using System;
 using JetBrains.Annotations;
 using NFive.SDK.Core.Models;
+using System;
 
 namespace NFive.Login.Shared.Models
 {

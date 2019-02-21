@@ -1,6 +1,6 @@
-using System;
-using NFive.SDK.Client.Interface;
 using NFive.Login.Shared;
+using NFive.SDK.Client.Interface;
+using System;
 
 namespace NFive.Login.Client.Overlays
 {

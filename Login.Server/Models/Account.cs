@@ -1,9 +1,9 @@
-using System;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using NFive.Login.Shared.Models;
 using NFive.SDK.Core.Models;
 using NFive.SDK.Core.Models.Player;
+using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace NFive.Login.Server.Models
 {

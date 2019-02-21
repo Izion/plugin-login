@@ -122,7 +122,7 @@ $(() => {
 			const credentials =
 			{
 				Email: $("#LoginEmail").val(),
-				Password:  $("#LoginPassword").val()
+				Password: $("#LoginPassword").val()
 			};
 
 			nfive.send("login", credentials);
@@ -150,7 +150,7 @@ $(() => {
 		}
 	});
 
-	$("#SwitchToLogin").click(function(e) {
+	$("#SwitchToLogin").click(function (e) {
 		SwitchToForm(1);
 	});
 

@@ -1,19 +1,19 @@
+using CitizenFX.Core;
+using CitizenFX.Core.Native;
+using CitizenFX.Core.UI;
 using JetBrains.Annotations;
+using NFive.Login.Client.Overlays;
+using NFive.Login.Shared;
+using NFive.Login.Shared.Responses;
 using NFive.SDK.Client.Commands;
 using NFive.SDK.Client.Events;
+using NFive.SDK.Client.Extensions;
 using NFive.SDK.Client.Interface;
 using NFive.SDK.Client.Rpc;
 using NFive.SDK.Client.Services;
 using NFive.SDK.Core.Diagnostics;
 using NFive.SDK.Core.Models.Player;
 using System.Threading.Tasks;
-using NFive.Login.Client.Overlays;
-using NFive.Login.Shared;
-using CitizenFX.Core;
-using CitizenFX.Core.Native;
-using CitizenFX.Core.UI;
-using NFive.Login.Shared.Responses;
-using NFive.SDK.Client.Extensions;
 
 namespace NFive.Login.Client
 {
@@ -89,7 +89,7 @@ namespace NFive.Login.Client
 
 		private async void OnRegister(object sender, CredentialsOverlayEventArgs credentials)
 		{
-			RegisterResponse response = await this.Rpc.Event(LoginEvents.Register).Request<RegisterResponse>(credentials.Email.ToLower(), credentials.Password);
+			var response = await this.Rpc.Event(LoginEvents.Register).Request<RegisterResponse>(credentials.Email.ToLower(), credentials.Password);
 
 			switch (response)
 			{
@@ -112,7 +112,7 @@ namespace NFive.Login.Client
 
 		private async void OnLogin(object sender, CredentialsOverlayEventArgs credentials)
 		{
-			LoginResponse response = await this.Rpc.Event(LoginEvents.Login).Request<LoginResponse>(credentials.Email.ToLower(), credentials.Password);
+			var response = await this.Rpc.Event(LoginEvents.Login).Request<LoginResponse>(credentials.Email.ToLower(), credentials.Password);
 
 			switch (response)
 			{
