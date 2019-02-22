@@ -53,17 +53,17 @@ namespace NFive.Login.Client
 			API.SetCloudHatOpacity(0.01f);
 
 			// Wait for switch
-			while (API.GetPlayerSwitchState() != 5) await Delay(10);
+			while (API.GetPlayerSwitchState() != 5) await Delay(50);
 
 			// Hide loading screen
 			API.ShutdownLoadingScreen();
 
 			// Fade out
 			Screen.Fading.FadeOut(0);
-			while (Screen.Fading.IsFadingOut) await Delay(10);
+			while (Screen.Fading.IsFadingOut) await Delay(50);
 
 			// Create overlay
-			this.overlay = new LoginOverlay(this.OverlayManager, this.config);
+			this.overlay = new LoginOverlay(this.OverlayManager, this.config); // TODO: Handle reload
 			this.overlay.Login += OnLogin;
 			this.overlay.Register += OnRegister;
 
@@ -78,10 +78,10 @@ namespace NFive.Login.Client
 
 			// Fade in
 			Screen.Fading.FadeIn(500);
-			while (Screen.Fading.IsFadingIn) await Delay(10);
+			while (Screen.Fading.IsFadingIn) await Delay(50);
 
 			// Wait for user before releasing focus
-			while (!this.loggedIn) await Delay(20);
+			while (!this.loggedIn) await Delay(50);
 		}
 
 		private async void OnRegister(object sender, CredentialsOverlayEventArgs e)
