@@ -8,12 +8,14 @@ using NFive.SDK.Server.Rpc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 
 namespace NFive.Login.Server
 {
 	/// <summary>
-	/// Wrapper library for accessing events from external plugins.
+	/// Wrapper library for accessing login and account events from external plugins.
 	/// </summary>
+	[PublicAPI]
 	public class Login
 	{
 		/// <summary>
@@ -27,7 +29,7 @@ namespace NFive.Login.Server
 		protected readonly IRpcHandler Rpc;
 
 		/// <summary>
-		/// Occurs when a new account has been registered.
+		/// Occurs when a new account has been registered for a user.
 		/// </summary>
 		public event EventHandler<ClientAccountEventArgs> AccountRegistered;
 
@@ -37,20 +39,12 @@ namespace NFive.Login.Server
 		public event EventHandler<ClientAccountEventArgs> ClientLoggedIn;
 
 		/// <summary>
-		/// Gets the currently logged in accounts count.
+		/// Gets the list of currently logged in accounts.
 		/// </summary>
 		/// <value>
-		/// The current logged in accounts count.
+		/// List of the current logged in accounts.
 		/// </value>
-		public int CurrentLoggedInAccountsCount => this.Events.Request<int>(LoginEvents.GetCurrentAccountsCount);
-
-		/// <summary>
-		/// Gets the currently logged in accounts count.
-		/// </summary>
-		/// <value>
-		/// The current logged in accounts count.
-		/// </value>
-		public List<Account> CurrentLoggedInAccounts => this.Events.Request<List<Account>>(LoginEvents.GetCurrentAccounts);
+		public List<Account> LoggedInAccounts => this.Events.Request<List<Account>>(LoginEvents.GetCurrentAccounts);
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Login"/> wrapper.
@@ -67,12 +61,17 @@ namespace NFive.Login.Server
 		}
 
 		/// <summary>
-		/// Returns whether a user is currently logged in or not.
+		/// Determines whether a user is logged in.
 		/// </summary>
-		/// <param name="user">The user to check if logged in or not.</param>
-		public bool IsUserLoggedIn(User user)
-		{
-			return this.CurrentLoggedInAccounts.Any(a => a.UserId == user.Id);
-		}
+		/// <param name="user">The user to check.</param>
+		/// <returns><c>true</c> if the user is logged in; otherwise, <c>false</c>.</returns>
+		public bool IsLoggedIn(User user) => this.LoggedInAccounts.Any(a => a.UserId == user.Id);
+
+		/// <summary>
+		/// Gets the current account for a user, if any.
+		/// </summary>
+		/// <param name="user">The user to get the current account for.</param>
+		/// <returns>The currently logged in user's account; otherwise, <c>null</c> if not currently logged in to an account.</returns>
+		public Account GetCurrentAccount(User user) => this.LoggedInAccounts.FirstOrDefault(a => a.UserId == user.Id);
 	}
 }
