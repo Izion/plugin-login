@@ -50,7 +50,6 @@ $(() => {
 
 		if (config.ForceMixedCase) {
 			pattern += "(?=.*[a-z])(?=.*[A-Z])";
-
 			requirement += " upper and lower case";
 
 			if (config.ForceDigits || config.ForceSymbols) requirement += " and";
@@ -60,7 +59,6 @@ $(() => {
 
 		if (config.ForceDigits) {
 			pattern += "(?=.*\\d)";
-
 			requirement += " number";
 
 			if (config.ForceSymbols) requirement += " and";
@@ -68,7 +66,6 @@ $(() => {
 
 		if (config.ForceSymbols) {
 			pattern += "(?=.*([^a-zA-Z\\d\\s]))";
-
 			requirement += " special character";
 		}
 
