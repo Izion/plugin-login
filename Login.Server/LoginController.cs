@@ -1,4 +1,5 @@
 using CitizenFX.Core.Native;
+using JetBrains.Annotations;
 using NFive.Login.Server.Helpers;
 using NFive.Login.Server.Models;
 using NFive.Login.Server.Storage;
@@ -13,23 +14,20 @@ using NFive.SessionManager.Server.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using JetBrains.Annotations;
 
 namespace NFive.Login.Server
 {
 	[PublicAPI]
 	public class LoginController : ConfigurableController<Configuration>
 	{
-		private BCryptHelper BCryptHelper { get; }
-		private Dictionary<int, int> LoginAttempts { get; }
-		private List<Account> LoggedInAccounts { get; }
+		private BCryptHelper bcrypt;
+		private SessionManager.Server.SessionManager sessions;
+		private Dictionary<int, int> LoginAttempts { get; } = new Dictionary<int, int>();
+		private List<Account> LoggedInAccounts { get; } = new List<Account>();
 
 		public LoginController(ILogger logger, IEventManager events, IRpcHandler rpc, IRconManager rcon, Configuration configuration) : base(logger, events, rpc, rcon, configuration)
 		{
-			this.BCryptHelper = new BCryptHelper(this.Configuration.GlobalSalt, this.Configuration.BcryptCost);
-
-			this.LoginAttempts = new Dictionary<int, int>();
-			this.LoggedInAccounts = new List<Account>();
+			this.bcrypt = new BCryptHelper(this.Configuration.GlobalSalt, this.Configuration.BcryptCost);
 
 			// Send configuration when requested
 			this.Rpc.Event(LoginEvents.Configuration).On(e => e.Reply(new PublicConfiguration(this.Configuration)));
@@ -38,12 +36,11 @@ namespace NFive.Login.Server
 			this.Rpc.Event(LoginEvents.Login).On<Credentials>(OnLoginRequested);
 			this.Rpc.Event(LoginEvents.AuthenticationStarted).On(OnAuthenticationStarted);
 
-			this.Events.OnRequest(LoginEvents.GetCurrentAccountsCount, () => this.LoggedInAccounts.Count);
 			this.Events.OnRequest(LoginEvents.GetCurrentAccounts, () => this.LoggedInAccounts);
 
 			// Listen for NFive SessionManager plugin events
-			var sessions = new SessionManager.Server.SessionManager(this.Events, this.Rpc);
-			sessions.ClientDisconnected += OnClientDisconnected;
+			this.sessions = new SessionManager.Server.SessionManager(this.Events, this.Rpc);
+			this.sessions.ClientDisconnected += OnClientDisconnected;
 		}
 
 		private void OnClientDisconnected(object sender, ClientSessionEventArgs e)
@@ -53,14 +50,14 @@ namespace NFive.Login.Server
 			this.LoggedInAccounts.RemoveAll(a => a.UserId == e.Session.UserId);
 		}
 
-		private void OnAuthenticationStarted(IRpcEvent rpc)
+		private void OnAuthenticationStarted(IRpcEvent e)
 		{
-			this.Logger.Debug($"{rpc.User.Name} ({rpc.Client.Handle}) has started the authentication process!");
+			this.Logger.Debug($"{e.User.Name} ({e.Client.Handle}) has started the authentication process!");
 
-			this.LoginAttempts.Add(rpc.Client.Handle, 0);
+			this.LoginAttempts.Add(e.Client.Handle, 0);
 		}
 
-		private async void OnLoginRequested(IRpcEvent rpc, Credentials credentials)
+		private async void OnLoginRequested(IRpcEvent e, Credentials credentials)
 		{
 			using (var context = new StorageContext())
 			using (var transaction = context.Database.BeginTransaction())
@@ -69,27 +66,33 @@ namespace NFive.Login.Server
 				{
 					var account = context.Accounts.FirstOrDefault(a => a.Email == credentials.Email);
 
-					if (account == null || !this.BCryptHelper.ValidatePassword(credentials.Password, account.Password))
+					if (account == null || !this.bcrypt.ValidatePassword(credentials.Password, account.Password))
 					{
-						rpc.Reply(LoginResponse.Invalid);
+						e.Reply(LoginResponse.Invalid);
 
-						this.LoginAttempts[rpc.Client.Handle]++;
+						this.LoginAttempts[e.Client.Handle]++;
 
-						if (this.Configuration.LoginAttempts <= 0 || this.LoginAttempts[rpc.Client.Handle] < this.Configuration.LoginAttempts) return;
+						if (this.Configuration.LoginAttempts <= 0 || this.LoginAttempts[e.Client.Handle] < this.Configuration.LoginAttempts) return;
 
-						this.Logger.Debug($"Kicking {rpc.User.Name} for exceeding the maximum allowed login attempts.");
-						API.DropPlayer(rpc.Client.Handle.ToString(), "You have exceeded the maximum allowed login attempts!"); // TODO
+						this.Logger.Debug($"Kicking {e.User.Name} for exceeding the maximum allowed login attempts.");
+
+						API.DropPlayer(e.Client.Handle.ToString(), "You have exceeded the maximum allowed login attempts!"); // TODO: Drop with SessionManager
 					}
 					else
 					{
 						account.LastLogin = DateTime.UtcNow;
-						account.Password = this.BCryptHelper.UpdateHash(credentials.Password, account.Password);
+						account.Password = this.bcrypt.UpdateHash(credentials.Password, account.Password);
+
 						await context.SaveChangesAsync();
 						transaction.Commit();
+
 						this.LoggedInAccounts.Add(account);
-						this.Events.Raise(LoginEvents.LoggedIn, rpc.Client, account);
-						this.Logger.Debug($"{rpc.User.Name} has just logged in ({credentials.Email})");
-						rpc.Reply(LoginResponse.Valid);
+
+						this.Events.Raise(LoginEvents.LoggedIn, e.Client, account);
+
+						this.Logger.Debug($"{e.User.Name} has just logged in ({credentials.Email})");
+
+						e.Reply(LoginResponse.Valid);
 					}
 				}
 				catch (Exception ex)
@@ -98,55 +101,55 @@ namespace NFive.Login.Server
 
 					transaction.Rollback();
 
-					rpc.Reply(LoginResponse.Error);
+					e.Reply(LoginResponse.Error);
 				}
 			}
 		}
 
-		private async void OnRegistrationRequested(IRpcEvent rpc, Credentials credentials)
+		private async void OnRegistrationRequested(IRpcEvent e, Credentials credentials)
 		{
 			using (var context = new StorageContext())
 			using (var transaction = context.Database.BeginTransaction())
 			{
 				try
 				{
-					if (this.Configuration.MaxAccountsPerUser != 0 && context.Accounts.Select(a => a.UserId == rpc.User.Id).ToList().Count >= this.Configuration.MaxAccountsPerUser)
+					if (this.Configuration.MaxAccountsPerUser != 0 && context.Accounts.Select(a => a.UserId == e.User.Id).ToList().Count >= this.Configuration.MaxAccountsPerUser)
 					{
-						rpc.Reply(RegisterResponse.AccountLimitReached);
+						e.Reply(RegisterResponse.AccountLimitReached);
 						return;
 					}
 
-					if (context.Accounts.Any(e => e.Email == credentials.Email))
+					if (context.Accounts.Any(a => a.Email == credentials.Email))
 					{
-						rpc.Reply(RegisterResponse.EmailExists);
+						e.Reply(RegisterResponse.EmailExists);
 					}
 					else
 					{
 						var account = new Account
 						{
 							Email = credentials.Email,
-							Password = this.BCryptHelper.HashPassword(credentials.Password),
-							UserId = rpc.User.Id
+							Password = this.bcrypt.HashPassword(credentials.Password),
+							UserId = e.User.Id
 						};
 
 						context.Accounts.Add(account);
 						await context.SaveChangesAsync();
 						transaction.Commit();
 
-						this.Events.Raise(LoginEvents.Registered, rpc.Client, account);
+						this.Events.Raise(LoginEvents.Registered, e.Client, account);
 
-						this.Logger.Debug($"{rpc.User.Name} has registered a new account ({credentials.Email})");
+						this.Logger.Debug($"{e.User.Name} has registered a new account ({credentials.Email})");
 
-						rpc.Reply(RegisterResponse.Created);
+						e.Reply(RegisterResponse.Created);
 					}
 				}
-				catch (Exception e)
+				catch (Exception ex)
 				{
-					this.Logger.Error(e);
+					this.Logger.Error(ex);
 
 					transaction.Rollback();
 
-					rpc.Reply(RegisterResponse.Error);
+					e.Reply(RegisterResponse.Error);
 				}
 			}
 		}
@@ -155,6 +158,9 @@ namespace NFive.Login.Server
 		{
 			// Update local configuration
 			base.Reload(configuration);
+
+			// Update BCrypt settings
+			this.bcrypt = new BCryptHelper(this.Configuration.GlobalSalt, this.Configuration.BcryptCost);
 
 			// Send out new configuration
 			this.Rpc.Event(LoginEvents.Configuration).Trigger(new PublicConfiguration(this.Configuration));
