@@ -16,6 +16,8 @@
 				background-color: transparent;
 			}
 		</style>
+
+		<link rel="stylesheet" href="nfive://content/custom.css">
 	</head>
 
 	<body class="d-flex justify-content-center align-items-center">
@@ -23,7 +25,6 @@
 			<h1 class="display-1 text-center mb-5">Login</h1>
 
 			<div id="error-alert" class="alert alert-danger d-none"></div>
-			<div id="info-alert" class="alert alert-success d-none"></div>
 
 			<section>
 				<form id="login" class="needs-validation" novalidate>
@@ -48,7 +49,10 @@
 							<button type="button" id="switch-register" class="btn btn-secondary mt-1">Register</button>
 						</div>
 
-						<button type="submit" class="btn btn-lg btn-success">Login</button>
+						<button type="submit" class="btn btn-lg btn-success">
+							<span class="spinner-border spinner-border-sm align-baseline d-none"></span>
+							Login
+						</button>
 					</div>
 				</form>
 
@@ -66,7 +70,7 @@
 					</div>
 
 					<div class="form-group">
-						<input id="password" class="form-control form-control-lg" type="password" placeholder="Password" pattern="" required>
+						<input id="password" class="form-control form-control-lg" type="password" placeholder="Password" required>
 
 						<div class="invalid-feedback">
 							Please enter a valid password.
@@ -88,7 +92,10 @@
 							<button type="button" id="switch-login" class="btn btn-secondary mt-1">Login</button>
 						</div>
 
-						<button type="submit" class="btn btn-lg btn-success">Register</button>
+						<button type="submit" class="btn btn-lg btn-success">
+							<span class="spinner-border spinner-border-sm align-baseline d-none"></span>
+							Register
+						</button>
 					</div>
 				</form>
 			</section>

@@ -89,7 +89,6 @@ namespace NFive.Login.Server
 						this.LoggedInAccounts.Add(account);
 
 						this.Events.Raise(LoginEvents.LoggedIn, e.Client, account);
-
 						this.Logger.Debug($"{e.User.Name} has just logged in ({credentials.Email})");
 
 						e.Reply(LoginResponse.Valid);
@@ -122,26 +121,30 @@ namespace NFive.Login.Server
 					if (context.Accounts.Any(a => a.Email == credentials.Email))
 					{
 						e.Reply(RegisterResponse.EmailExists);
+						return;
 					}
-					else
+
+					var account = new Account
 					{
-						var account = new Account
-						{
-							Email = credentials.Email,
-							Password = this.bcrypt.HashPassword(credentials.Password),
-							UserId = e.User.Id
-						};
+						Email = credentials.Email,
+						Password = this.bcrypt.HashPassword(credentials.Password),
+						LastLogin = DateTime.UtcNow,
+						UserId = e.User.Id
+					};
 
-						context.Accounts.Add(account);
-						await context.SaveChangesAsync();
-						transaction.Commit();
+					context.Accounts.Add(account);
+					await context.SaveChangesAsync();
+					transaction.Commit();
 
-						this.Events.Raise(LoginEvents.Registered, e.Client, account);
+					this.Events.Raise(LoginEvents.Registered, e.Client, account);
+					this.Logger.Debug($"{e.User.Name} has registered a new account ({credentials.Email})");
 
-						this.Logger.Debug($"{e.User.Name} has registered a new account ({credentials.Email})");
+					this.LoggedInAccounts.Add(account);
 
-						e.Reply(RegisterResponse.Created);
-					}
+					this.Events.Raise(LoginEvents.LoggedIn, e.Client, account);
+					this.Logger.Debug($"{e.User.Name} has just logged in ({credentials.Email})");
+
+					e.Reply(RegisterResponse.Created);
 				}
 				catch (Exception ex)
 				{

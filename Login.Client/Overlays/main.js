@@ -1,27 +1,22 @@
-function ShowError(message) {
-	HideInfo();
-	$("#error-alert").html(message).removeClass("d-none");
+// DEBUG SHIM
+if (typeof window.nfive === "undefined") {
+	window.nfive = {
+		on: () => {},
+		send: async (event, data) => console.log(event, data),
+		log: (...args) => console.log(...args)
+	};
 }
+// DEBUG SHIM
 
-function HideError() {
-	$("#error-alert").text("").addClass("d-none");
-}
-
-function ShowInfo(message) {
-	HideError();
-	$("#info-alert").html(message).removeClass("d-none");
-}
-
-function HideInfo() {
-	$("#info-alert").text("").addClass("d-none");
-}
 
 function ShowForm(form) {
-	HideError();
-	HideInfo();
+	// Clear error
+	$("#error-alert").text("").addClass("d-none");
 
+	// Reset form validation
 	$("form").removeClass("was-validated");
 
+	// Show form and title
 	switch (form) {
 		case 0:
 			$("h1").text("Login");
@@ -38,11 +33,8 @@ function ShowForm(form) {
 }
 
 $(() => {
-	nfive.on("showForm", ShowForm);
-	nfive.on("showError", ShowError);
-	nfive.on("showInfo", ShowInfo);
-
 	nfive.on("config", (config) => {
+		// Build password requirements
 		let pattern = "^";
 		let requirement = `Your password must be at least ${config.MinPasswordLength} characters long`;
 
@@ -72,9 +64,11 @@ $(() => {
 		pattern += `.{${config.MinPasswordLength},}$`;
 		requirement += ".";
 
+		// Apply requirements
 		$("#register #password").attr("pattern", pattern);
 		$("#password-requirements").text(requirement);
 
+		// Show overlay
 		nfive.show();
 	});
 
@@ -85,17 +79,46 @@ $(() => {
 		$("#password-repeat", this)[0].setCustomValidity($("#password-repeat", this).val() !== $("#password", this).val() ? "Error" : "");
 	});
 
-	$("form.needs-validation").on("submit", function(e) {
+	$("form.needs-validation").on("submit", async function(e) {
 		e.preventDefault();
 
 		if ($(this)[0].checkValidity() === true) {
-			nfive.send($(this).attr("id"), {
+			// Hide validation
+			$(this).removeClass("was-validated");
+
+			// Disable form
+			$(":input", this).prop("disabled", true);
+
+			// Show button spinner
+			$("button[type=submit] span", this).removeClass("d-none");
+
+			// Send data
+			const response = await nfive.send($(this).attr("id"), {
 				Email: $("#email", this).val(),
 				Password: $("#password", this).val()
 			});
-		}
 
-		$(this).addClass("was-validated");
+			const data = await response.json();
+
+			if (data.Success) return; // Overlay will be destroyed
+
+			// Show error
+			$("#error-alert").html(data.Message).removeClass("d-none");
+
+			// Hide button spinner
+			$("button[type=submit] span", this).addClass("d-none");
+
+			// Enable form
+			$(":input", this).prop("disabled", false);
+
+			// Clear password inputs
+			$("#password, #password-repeat", this).val("");
+
+			// Focus password input
+			$("#password", this).focus();
+		} else {
+			$(this).addClass("was-validated");
+		}
 	});
 
 	nfive.send("load");

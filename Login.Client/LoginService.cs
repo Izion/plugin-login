@@ -89,22 +89,46 @@ namespace NFive.Login.Client
 			switch (await this.Rpc.Event(LoginEvents.Register).Request<RegisterResponse>(e.Credentials))
 			{
 				case RegisterResponse.AccountLimitReached:
-					this.overlay.ShowError("You have reached the maximum number of accounts for this GTAV license!");
+					e.Reply(new
+					{
+						Success = false,
+						Message = "You have reached the maximum number of accounts for this GTAV license!"
+					});
+
 					break;
 
 				case RegisterResponse.EmailExists:
-					this.overlay.ShowError("The email address you entered already has an account registered!");
+					e.Reply(new
+					{
+						Success = false,
+						Message = "The email address you entered already has an account registered!"
+					});
+
 					break;
 
 				case RegisterResponse.Created:
-					this.overlay.ShowForm(Forms.Login);
-					this.overlay.ShowInfo("Your account has been registered! Please login.");
+					e.Reply(new
+					{
+						Success = true,
+						Message = string.Empty
+					});
+
+					this.overlay.Dispose();
+
+					// Release focus hold
+					this.loggedIn = true;
+
 					break;
 
 				// ReSharper disable once RedundantCaseLabel
 				case RegisterResponse.Error:
 				default:
-					this.overlay.ShowError("An unexpected error has occured. Please notify a server administrator.");
+					e.Reply(new
+					{
+						Success = false,
+						Message = "An unexpected error has occured. Please notify a server administrator."
+					});
+
 					break;
 			}
 		}
@@ -114,10 +138,21 @@ namespace NFive.Login.Client
 			switch (await this.Rpc.Event(LoginEvents.Login).Request<LoginResponse>(e.Credentials))
 			{
 				case LoginResponse.Invalid:
-					this.overlay.ShowError("You have entered an incorrect email/password combination!<br>Forgotten your password? Contact a server administrator.");
+					e.Reply(new
+					{
+						Success = false,
+						Message = "You have entered an incorrect email/password combination!<br>Forgotten your password? Contact a server administrator."
+					});
+
 					break;
 
 				case LoginResponse.Valid:
+					e.Reply(new
+					{
+						Success = true,
+						Message = string.Empty
+					});
+
 					this.overlay.Dispose();
 
 					// Release focus hold
@@ -128,7 +163,12 @@ namespace NFive.Login.Client
 				// ReSharper disable once RedundantCaseLabel
 				case LoginResponse.Error:
 				default:
-					this.overlay.ShowError("An unexpected error has occured. Please notify a server administrator.");
+					e.Reply(new
+					{
+						Success = false,
+						Message = "An unexpected error has occured. Please notify a server administrator."
+					});
+
 					break;
 			}
 		}
