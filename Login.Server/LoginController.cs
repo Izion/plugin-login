@@ -22,8 +22,8 @@ namespace NFive.Login.Server
 	{
 		private BCryptHelper bcrypt;
 		private SessionManager sessions;
-		private Dictionary<int, int> LoginAttempts { get; } = new Dictionary<int, int>();
-		private List<Account> LoggedInAccounts { get; } = new List<Account>();
+		private Dictionary<int, int> loginAttempts = new Dictionary<int, int>();
+		private List<Account> loggedInAccounts = new List<Account>();
 
 		public LoginController(ILogger logger, IEventManager events, IRpcHandler rpc, IRconManager rcon, Configuration configuration) : base(logger, events, rpc, rcon, configuration)
 		{
@@ -36,7 +36,7 @@ namespace NFive.Login.Server
 			this.Rpc.Event(LoginEvents.Login).On<Credentials>(OnLoginRequested);
 			this.Rpc.Event(LoginEvents.AuthenticationStarted).On(OnAuthenticationStarted);
 
-			this.Events.OnRequest(LoginEvents.GetCurrentAccounts, () => this.LoggedInAccounts);
+			this.Events.OnRequest(LoginEvents.GetCurrentAccounts, () => this.loggedInAccounts);
 
 			// Listen for NFive session events
 			this.sessions = new SessionManager(this.Events, this.Rpc);
@@ -45,16 +45,16 @@ namespace NFive.Login.Server
 
 		private void OnClientDisconnected(object sender, ClientSessionEventArgs e)
 		{
-			if (this.LoginAttempts.ContainsKey(e.Client.Handle)) this.LoginAttempts.Remove(e.Client.Handle);
+			if (this.loginAttempts.ContainsKey(e.Client.Handle)) this.loginAttempts.Remove(e.Client.Handle);
 
-			this.LoggedInAccounts.RemoveAll(a => a.UserId == e.Session.UserId);
+			this.loggedInAccounts.RemoveAll(a => a.UserId == e.Session.UserId);
 		}
 
 		private void OnAuthenticationStarted(IRpcEvent e)
 		{
 			this.Logger.Debug($"{e.User.Name} ({e.Client.Handle}) has started the authentication process!");
 
-			this.LoginAttempts.Add(e.Client.Handle, 0);
+			this.loginAttempts.Add(e.Client.Handle, 0);
 		}
 
 		private async void OnLoginRequested(IRpcEvent e, Credentials credentials)
@@ -70,9 +70,9 @@ namespace NFive.Login.Server
 					{
 						e.Reply(LoginResponse.Invalid);
 
-						this.LoginAttempts[e.Client.Handle]++;
+						this.loginAttempts[e.Client.Handle]++;
 
-						if (this.Configuration.LoginAttempts <= 0 || this.LoginAttempts[e.Client.Handle] < this.Configuration.LoginAttempts) return;
+						if (this.Configuration.LoginAttempts <= 0 || this.loginAttempts[e.Client.Handle] < this.Configuration.LoginAttempts) return;
 
 						this.Logger.Debug($"Kicking {e.User.Name} for exceeding the maximum allowed login attempts.");
 
@@ -86,7 +86,7 @@ namespace NFive.Login.Server
 						await context.SaveChangesAsync();
 						transaction.Commit();
 
-						this.LoggedInAccounts.Add(account);
+						this.loggedInAccounts.Add(account);
 
 						this.Events.Raise(LoginEvents.LoggedIn, e.Client, account);
 						this.Logger.Debug($"{e.User.Name} has just logged in ({credentials.Email})");
@@ -139,7 +139,7 @@ namespace NFive.Login.Server
 					this.Events.Raise(LoginEvents.Registered, e.Client, account);
 					this.Logger.Debug($"{e.User.Name} has registered a new account ({credentials.Email})");
 
-					this.LoggedInAccounts.Add(account);
+					this.loggedInAccounts.Add(account);
 
 					this.Events.Raise(LoginEvents.LoggedIn, e.Client, account);
 					this.Logger.Debug($"{e.User.Name} has just logged in ({credentials.Email})");
