@@ -43,9 +43,8 @@
     </ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="BCrypt.Net-Next.net, Version=3.1.2.0, Culture=neutral, PublicKeyToken=1e11be04b6288443, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\BCrypt.Net-Next.net.dll</HintPath>
+    <Reference Include="BCrypt.Net-Next, Version=3.1.3.0, Culture=neutral, PublicKeyToken=1e11be04b6288443, processorArchitecture=MSIL">
+      <HintPath>..\packages\BCrypt.Net-Next.3.1.3\lib\net452\BCrypt.Net-Next.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="CitizenFX.Core, Version=0.0.0.0, Culture=neutral, processorArchitecture=AMD64">
@@ -111,6 +110,6 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="CopyLinkedContentFiles" BeforeTargets="BeforeBuild">
-    <Copy SourceFiles="..\packages\BCrypt.Net-Next.3.1.2\lib\net452\BCrypt.Net-Next.dll" DestinationFiles="..\BCrypt.Net-Next.net.dll" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" />
+    <Copy SourceFiles="..\packages\BCrypt.Net-Next.3.1.3\lib\net452\BCrypt.Net-Next.dll" DestinationFiles="..\BCrypt.Net-Next.net.dll" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" />
   </Target>
 </Project>
