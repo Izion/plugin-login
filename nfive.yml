@@ -17,5 +17,3 @@ client:
   files:
   - Overlays/LoginOverlay.html
   - Overlays/main.js
-dependencies:
-  NFive/plugin-sessionmanager: '*'

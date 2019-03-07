@@ -1,5 +1,4 @@
 using CitizenFX.Core;
-using Newtonsoft.Json;
 using NFive.Login.Shared;
 using NFive.SDK.Client.Interface;
 using System;

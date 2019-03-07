@@ -10,7 +10,7 @@ using NFive.SDK.Server.Controllers;
 using NFive.SDK.Server.Events;
 using NFive.SDK.Server.Rcon;
 using NFive.SDK.Server.Rpc;
-using NFive.SessionManager.Server.Events;
+using NFive.SDK.Server.Wrappers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +21,7 @@ namespace NFive.Login.Server
 	public class LoginController : ConfigurableController<Configuration>
 	{
 		private BCryptHelper bcrypt;
-		private SessionManager.Server.SessionManager sessions;
+		private SessionManager sessions;
 		private Dictionary<int, int> LoginAttempts { get; } = new Dictionary<int, int>();
 		private List<Account> LoggedInAccounts { get; } = new List<Account>();
 
@@ -38,8 +38,8 @@ namespace NFive.Login.Server
 
 			this.Events.OnRequest(LoginEvents.GetCurrentAccounts, () => this.LoggedInAccounts);
 
-			// Listen for NFive SessionManager plugin events
-			this.sessions = new SessionManager.Server.SessionManager(this.Events, this.Rpc);
+			// Listen for NFive session events
+			this.sessions = new SessionManager(this.Events, this.Rpc);
 			this.sessions.ClientDisconnected += OnClientDisconnected;
 		}
 
