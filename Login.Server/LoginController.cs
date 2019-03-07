@@ -64,7 +64,7 @@ namespace NFive.Login.Server
 			{
 				try
 				{
-					var account = context.Accounts.FirstOrDefault(a => a.Email == credentials.Email);
+					var account = context.Accounts.FirstOrDefault(a => a.Email == credentials.Email && a.Deleted == null);
 
 					if (account == null || !this.bcrypt.ValidatePassword(credentials.Password, account.Password))
 					{
@@ -112,13 +112,13 @@ namespace NFive.Login.Server
 			{
 				try
 				{
-					if (this.Configuration.MaxAccountsPerUser != 0 && context.Accounts.Select(a => a.UserId == e.User.Id).ToList().Count >= this.Configuration.MaxAccountsPerUser)
+					if (this.Configuration.MaxAccountsPerUser != 0 && context.Accounts.Count(a => a.UserId == e.User.Id && a.Deleted == null) >= this.Configuration.MaxAccountsPerUser)
 					{
 						e.Reply(RegisterResponse.AccountLimitReached);
 						return;
 					}
 
-					if (context.Accounts.Any(a => a.Email == credentials.Email))
+					if (context.Accounts.Any(a => a.Email == credentials.Email && a.Deleted == null))
 					{
 						e.Reply(RegisterResponse.EmailExists);
 						return;
